@@ -11,9 +11,9 @@ jobs:
 
     steps:
     - name: Checkout código
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
-    - name: Configurar Python 3.10
+    - name: Setup Python 3.10
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
@@ -21,49 +21,40 @@ jobs:
     - name: Instalar dependências do sistema
       run: |
         sudo apt update
-        sudo apt install -y \
-          python3-pip python3-setuptools git zip unzip \
-          openjdk-17-jdk libffi-dev libssl-dev build-essential
+        sudo apt install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev build-essential curl unzip
 
-    - name: Instalar Android SDK
+    - name: Instalar Android SDK Command Line Tools
       run: |
-        mkdir -p $HOME/android-sdk
+        mkdir -p $HOME/android-sdk/cmdline-tools
         curl -o sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
         unzip sdk.zip -d $HOME/android-sdk/cmdline-tools
         mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-    - name: Configurar ambiente Android
+    - name: Configurar variáveis de ambiente Android
       run: |
-        echo "export ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/23.1.7779620" >> $GITHUB_ENV
         echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-    - name: Instalar Build Tools e aceitar licenças
+    - name: Aceitar licenças e instalar SDK Build Tools 34.0.0
       run: |
         yes | sdkmanager --licenses
-        sdkmanager --sdk_root=${HOME}/android-sdk \
-          "platform-tools" "platforms;android-31" "build-tools;34.0.0"
+        sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "platforms;android-31" "build-tools;34.0.0" "ndk;23.1.7779620"
 
-    - name: Limpar buildozer antigo
-      run: rm -rf .buildozer
-
-    - name: Criar ambiente virtual e instalar buildozer
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install buildozer cython
-
-    - name: Criar buildozer.spec se necessário
-      run: |
-        test -f buildozer.spec || buildozer init
-
-    - name: Limpar SDK/NDK cache do buildozer
+    - name: Limpar cache do Buildozer (SDK e NDK)
       run: |
         rm -rf .buildozer/android/platform/android-sdk
         rm -rf .buildozer/android/platform/android-ndk
 
-    - name: Compilar APK
+    - name: Criar ambiente virtual e instalar Buildozer + Cython
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install buildozer cython
+
+    - name: Compilar APK com Buildozer
       run: |
         export ANDROID_SDK_ROOT=$HOME/android-sdk
         export ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/23.1.7779620
@@ -71,7 +62,7 @@ jobs:
         buildozer android debug
 
     - name: Upload APK como artefato
-      uses: actions/setup-python@v4 
+      uses: actions/upload-artifact@v4
       with:
         name: kivy-apk
         path: bin/*.apk
