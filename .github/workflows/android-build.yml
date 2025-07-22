@@ -21,6 +21,10 @@ jobs:
           openjdk-17-jdk python3.10-venv libffi-dev \
           libssl-dev build-essential
 
+    - name: Install Android Build Tools
+      run: |
+        sdkmanager "build-tools;34.0.0"
+
     - name: Instalar buildozer
       run: |
         python3 -m venv venv
