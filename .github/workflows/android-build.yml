@@ -1,0 +1,40 @@
+name: Build Kivy APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Instalar dependências do sistema
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          python3-pip python3-setuptools git zip unzip \
+          openjdk-17-jdk python3.10-venv libffi-dev \
+          libssl-dev build-essential
+
+    - name: Instalar buildozer
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install buildozer cython
+
+    - name: Compilar APK
+      run: |
+        source venv/bin/activate
+        buildozer android debug
+
+    - name: Upload APK como artefato
+      uses: actions/upload-artifact@v3
+      with:
+        name: kivy-apk
+        path: bin/*.apk
