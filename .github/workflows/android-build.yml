@@ -27,16 +27,20 @@ jobs:
           unzip cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
           mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-      - name: Set ANDROID_HOME and PATH
+      - name: Set environment variables
         run: |
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
           echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
-      - name: Accept licenses and install build-tools
+      - name: Accept all licenses first
         run: |
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0"
+
+      - name: Install platform-tools and build-tools
+        run: |
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-33"
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;36.0.0"
 
       - name: Build APK
-        run: |
-          ~/.local/bin/buildozer android debug
+        run: ~/.local/bin/buildozer android debug
