@@ -87,6 +87,7 @@ jobs:
             unzip \
             autoconf \
             libtool \
+            libtool-bin \
             pkg-config \
             libncurses5-dev \
             libncursesw5-dev \
