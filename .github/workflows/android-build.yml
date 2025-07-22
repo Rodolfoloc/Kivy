@@ -22,9 +22,10 @@ jobs:
           unzip cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
           mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-      - name: Set ANDROID_HOME and PATH
+      - name: Set ANDROID_HOME, ANDROIDSDK and PATH
         run: |
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROIDSDK=$HOME/android-sdk" >> $GITHUB_ENV
           echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
       - name: Accept licenses and install build-tools 33.0.2
@@ -35,7 +36,6 @@ jobs:
       - name: Install Buildozer and dependencies
         run: |
           pip3 install --user cython buildozer
-          pip3 install --user buildozer
 
       - name: Build APK
         run: ~/.local/bin/buildozer android debug
