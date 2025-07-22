@@ -1,30 +1,59 @@
 [app]
 
-title = MeuApp
+# (str) Nome do pacote (aparece no nome do app instalado)
+title = MeuAppKivy
+
+# (str) Nome da pasta principal (onde está seu main.py)
 package.name = meuapp
+
+# (str) Domínio reverso
 package.domain = org.exemplo
+
+# (str) Arquivo principal da aplicação
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
+main.py = main.py
+
+# (list) Requisitos Python e Cython
 requirements = python3,kivy
-orientation = portrait
-osx.kivy_version = 2.2.1
 
-fullscreen = 1
+# (list) Arquiteturas Android a incluir (use só arm64-v8a se quiser APK menor)
+android.archs = armeabi-v7a,arm64-v8a
 
-android.api = 33
+# (str) Nome do arquivo APK gerado
+android.debug = 1
+android.logcat_filters = *:S python:D
 android.minapi = 21
-android.sdk = 33
+android.api = 33
 android.ndk = 25b
-android.build_tools_version = 33.0.2
-android.accept_sdk_license = true
-android.accept_ndk_license = true
+android.ndk_api = 21
 
-android.archs = armeabi-v7a, arm64-v8a
+# (str) Bootstrap SDL2 (recomendado)
+bootstrap = sdl2
 
-# (opcional) ícone
+# (int) Orientação da tela
+orientation = portrait
+
+# (str) Tema
+android.theme = @android:style/Theme.NoTitleBar
+
+# (bool) Copiar bibliotecas compartilhadas
+copy_libs = 1
+
+# (str) Ícone (opcional)
 # icon.filename = %(source.dir)s/icon.png
 
+
 [buildozer]
+
+# (str) Diretório onde os arquivos temporários ficam
+build_dir = .buildozer
+
+# (str) Log level
 log_level = 2
-warn_on_root = 1
+
+# (bool) Evita usar sudo
+use_sudo = False
+
+# (bool) Limpa antes de compilar
+# clean_build = 1
