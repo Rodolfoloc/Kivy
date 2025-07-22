@@ -1,18 +1,23 @@
-name: Build Kivy APK
+ame: Build Kivy APK
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      PATH: /usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH
+
     steps:
-      - name: 🧾 Checkout do código
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: 🛠️ Instalar dependências do sistema
+      - name: Instalar dependências do sistema
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -21,45 +26,43 @@ jobs:
             zip \
             unzip \
             openjdk-17-jdk \
-            autoconf \
-            automake \
-            libtool \
-            libffi-dev \
-            libssl-dev \
-            libsqlite3-dev \
-            zlib1g-dev \
-            libjpeg-dev \
-            libncurses5-dev \
-            libbz2-dev \
-            libreadline-dev \
-            liblzma-dev \
-            python3-dev \
-            python3-pip \
-            python3-setuptools \
-            python3-venv \
-            ant
+            autoconf automake libtool libffi-dev libssl-dev libsqlite3-dev zlib1g-dev \
+            libjpeg-dev libncurses5-dev libbz2-dev libreadline-dev liblzma-dev \
+            python3-dev python3-pip python3-setuptools python3-venv ant
 
-      - name: 📦 Instalar AIDL e Build-Tools no SDK
+      - name: Baixar e instalar Android cmdline-tools oficial
         run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q commandlinetools.zip
+          rm commandlinetools.zip
+          mv cmdline-tools latest
+
+      - name: Aceitar licenças e instalar build-tools e plataformas
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.2"
 
-      - name: 🐍 Criar ambiente virtual Python
+      - name: Exportar build-tools para PATH
+        run: echo "$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_PATH
+
+      - name: Criar ambiente virtual Python e instalar Buildozer
         run: |
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools wheel
           pip install cython buildozer
 
-      - name: 🧱 Compilar APK com Buildozer
+      - name: Compilar APK com Buildozer
         run: |
           source venv/bin/activate
           buildozer android debug
 
-      - name: 📦 Upload do APK
+      - name: Upload do APK gerado
         uses: actions/upload-artifact@v4
         with:
           name: kivy-apk
