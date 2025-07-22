@@ -18,25 +18,31 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3-pip openjdk-17-jdk unzip zip zlib1g-dev
+        sudo apt install -y python3-pip openjdk-17-jdk unzip zip zlib1g-dev wget
         pip3 install --upgrade cython buildozer
 
-    - name: Install Android Build Tools
+    - name: Setup Android SDK cmdline-tools
       run: |
-        sdkmanager "build-tools;33.0.0"
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+        cd $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip cmdline-tools.zip
+        mv cmdline-tools latest
+      env:
+        ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
-    - name: Install SDK Manager
+    - name: Accept Android SDK licenses
       run: |
-        yes | sudo sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-33"
-        sdkmanager "build-tools;33.0.0"
+        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+      env:
+        ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
     - name: Build APK with Buildozer
       run: |
         buildozer android debug
       env:
-        ANDROIDSDKROOT: ${{ runner.temp }}/android-sdk
-        ANDROIDNDKROOT: ${{ runner.temp }}/android-ndk
+        ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
+        ANDROIDNDKROOT: $HOME/.buildozer/android/platform/android-ndk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
