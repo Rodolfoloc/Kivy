@@ -8,16 +8,22 @@ on:
 
 jobs:
   build-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup Temurin JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3-pip openjdk-17-jdk unzip zip zlib1g-dev wget
-        pip3 install --upgrade cython buildozer
+        sudo apt install -y python3-pip unzip zip zlib1g-dev wget
+        pip install --upgrade cython buildozer
 
     - name: Setup Android SDK cmdline-tools
       run: |
@@ -29,21 +35,21 @@ jobs:
       env:
         ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
-    - name: Install SDK platforms and accept licenses
+    - name: Install SDK Platforms & Accept Licenses
       run: |
         yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=${HOME}/.buildozer/android/platform/android-sdk --licenses
         $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=${HOME}/.buildozer/android/platform/android-sdk "platform-tools" "platforms;android-33" "build-tools;33.0.2"
       env:
         ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
-    - name: Build APK with Buildozer
+    - name: Build APK
       run: |
         buildozer android debug
       env:
         ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
         ANDROIDNDKROOT: $HOME/.buildozer/android/platform/android-ndk
 
-    - name: Upload APK artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: myapp-apk
