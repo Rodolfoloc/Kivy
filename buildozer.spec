@@ -9,6 +9,7 @@ requirements = python3,kivy
 orientation = portrait
 osx.python_version = 3
 fullscreen = 1
+android.build_tools_version = 33.0.2
 
 [buildozer]
 log_level = 2
