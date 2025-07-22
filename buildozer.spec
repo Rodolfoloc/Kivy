@@ -15,7 +15,7 @@ warn_on_root = 1
 
 [android]
 # API e ferramentas fixadas para compatibilidade com GitHub Actions
-android.sdk = 31
+#android.sdk = 31
 android.ndk = 23b
 android.api = 31
 android.build_tools_version = 34.0.0
