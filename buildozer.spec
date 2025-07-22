@@ -1,31 +1,66 @@
 [app]
 
-title = MeuAppKivy
-package.name = meuapp
-package.domain = org.exemplo
+# (str) Title of your application
+title = MyApp
+
+# (str) Package name
+package.name = myapp
+
+# (str) Package domain (reverse DNS style)
+package.domain = org.example
+
+# (str) Source code where the main.py is located
+source.dir = .
+
+# (str) Application version
 version = 0.1
 
-source.dir = .
-source.include_exts = py
-main.py = main.py
-
+# (list) Application requirements
 requirements = python3,kivy
 
-orientation = portrait
-fullscreen = 0
+# (str) Entry point of the app
+# Use your main python file name
+entrypoint = myapp.py
 
+# (list) Permissions required by the app
+android.permissions = INTERNET
+
+# (bool) Whether to include the Kivy launcher or package your app standalone
+# False means standalone APK
+android.arch = armeabi-v7a
+
+# (int) Target Android API (use current stable)
 android.api = 33
+
+# (int) Minimum Android API your app will support
 android.minapi = 21
+
+# (int) Android SDK build tools version
+android.sdk = 33
+
+# (int) Android NDK version
 android.ndk = 25b
+
+# (str) Android NDK API level
 android.ndk_api = 21
-android.archs = armeabi-v7a,arm64-v8a
 
-bootstrap = sdl2
-android.logcat_filters = *:S python:D
-copy_libs = 1
+# (bool) Whether to copy the .so files
+android.copy_libs = 1
 
-[buildozer]
+# (bool) Use --private data storage (True) or --dir public storage (False)
+android.private_storage = True
 
-log_level = 2
-use_sudo = False
-build_dir = .buildozer
+# (bool) Use SDL2 backend (True)
+android.use_sdl2 = True
+
+# (str) Supported orientation
+orientation = portrait
+
+# (str) Source include patterns (default is empty)
+# source.include_exts = py,png,jpg,kv,atlas
+
+# (list) List of modules to include/exclude
+# exclude_modules = 
+
+# (str) Icon of your app
+# icon.filename = %(source.dir)s/data/icon.png
