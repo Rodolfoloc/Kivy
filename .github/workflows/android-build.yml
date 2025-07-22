@@ -2,11 +2,9 @@ name: Build Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-apk:
@@ -31,9 +29,10 @@ jobs:
       env:
         ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
-    - name: Accept Android SDK licenses
+    - name: Install SDK platforms and accept licenses
       run: |
-        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=${HOME}/.buildozer/android/platform/android-sdk --licenses
+        $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=${HOME}/.buildozer/android/platform/android-sdk "platform-tools" "platforms;android-33" "build-tools;33.0.2"
       env:
         ANDROIDSDKROOT: $HOME/.buildozer/android/platform/android-sdk
 
