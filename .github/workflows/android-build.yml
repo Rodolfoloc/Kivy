@@ -1,66 +1,57 @@
-name: Build Kivy Android APK
+name: Build Android APK
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  pull_request:
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: Instalar dependências do sistema
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip openjdk-17-jdk unzip zip wget curl
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y zip unzip openjdk-17-jdk wget zlib1g-dev libffi-dev libssl-dev python3-pip
-          pip install --upgrade pip
-          pip install buildozer
+    - name: Instalar buildozer e cython
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install buildozer cython
 
-      - name: Initialize Buildozer
-        run: buildozer init
+    - name: Configurar Android SDK e NDK
+      run: |
+        # Cria pasta para SDK
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk
+        cd $HOME/.buildozer/android/platform
 
-      - name: Replace buildozer.spec with custom config
-        run: |
-          cat << EOF > buildozer.spec
-          [app]
-          title = MyApp
-          package.name = myapp
-          package.domain = org.example
-          source.dir = .
-          source.include_exts = py,png,jpg,kv,atlas
-          version = 0.1
-          requirements = python3,kivy
-          orientation = portrait
-          osx.kivy_version = 2.1.0
-          
-          [buildozer]
-          log_level = 2
-          warn_on_root = 0
-          android.sdk = 
-          android.ndk = 
-          android.ndk_path = 
-          android.sdk_path = 
-          android.accept_sdk_license = true
-          android.accept_ndk_license = true
-          android.build_tools_version = 34.0.0
-          android.api = 34
-          EOF
+        # Baixa e instala Android SDK Command Line Tools (necessário para sdkmanager)
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip cmdline-tools.zip -d android-sdk
+        mkdir -p android-sdk/cmdline-tools/latest
+        mv android-sdk/cmdline-tools/* android-sdk/cmdline-tools/latest/
+        rm cmdline-tools.zip
 
-      - name: Build APK
-        run: buildozer android debug
+        export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+        export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: myapp-debug-apk
-          path: bin/*.apk
+        # Aceitar licenças e instalar build-tools e plataforma
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+
+        # Extrai e renomeia NDK (pode ser opcional se buildozer baixar automaticamente)
+        unzip -q $ANDROID_SDK_ROOT/ndk/25.2.9519653/ndk.zip -d $ANDROID_SDK_ROOT/ndk/
+        mv $ANDROID_SDK_ROOT/ndk/android-ndk-r25b $ANDROID_SDK_ROOT/android-ndk-r25b || true
+
+    - name: Build APK usando buildozer.spec existente
+      run: |
+        buildozer android debug
+
+    - name: Listar APK gerado
+      run: ls -l bin/*.apk
