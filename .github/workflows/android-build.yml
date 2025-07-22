@@ -11,15 +11,26 @@ jobs:
 
     steps:
     - name: Checkout código
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
     - name: Instalar dependências do sistema
       run: |
         sudo apt update
         sudo apt install -y \
           python3-pip python3-setuptools git zip unzip \
-          openjdk-17-jdk python3.10-venv libffi-dev \
-          libssl-dev build-essential
+          openjdk-17-jdk libffi-dev libssl-dev build-essential
+
+    - name: Criar ambiente virtual e instalar buildozer
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install buildozer cython
 
     - name: Install Android Build Tools
       run: |
@@ -40,6 +51,5 @@ jobs:
     - name: Upload APK como artefato
       uses: actions/setup-python@v5  
       with:
-        python-version: '3.10'
         name: kivy-apk
         path: bin/*.apk
