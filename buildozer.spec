@@ -14,3 +14,4 @@ android.build_tools_version = 33.0.2
 [buildozer]
 log_level = 2
 warn_on_root = 1
+android.sdk_build_tools = 33.0.2
