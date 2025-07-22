@@ -1,68 +1,149 @@
-name: Build Kivy APK
+# Sample repository at https://github.com/Novfensec/SAMPLE-KIVYMD-APP
+# Tic Tac Toe Game at https://github.com/Novfensec/Tic-Tac-Toe-Android
+
+name: Android Build
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      # Used to cache dependencies with a timeout
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "date=$(date -u '+%Y%m%d')" >> $GITHUB_ENV
+        shell: bash
 
-    - name: Instalar dependências do sistema
-      run: |
-        sudo apt update
-        sudo apt install -y python3-pip python3-setuptools git zip unzip openjdk-17-jdk libffi-dev libssl-dev build-essential curl unzip
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-buildozer-global
+          restore-keys: |
+            ${{ runner.os }}-buildozer-global
 
-    - name: Instalar Android SDK Command Line Tools
-      run: |
-        mkdir -p $HOME/android-sdk/cmdline-tools
-        curl -o sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip sdk.zip -d $HOME/android-sdk/cmdline-tools
-        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+      - name: Cache Buildozer directory in app
+        uses: actions/cache@v4
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-app
+          restore-keys: |
+            ${{ runner.os }}-buildozer-app
 
-    - name: Configurar variáveis de ambiente Android
-      run: |
-        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/23.1.7779620" >> $GITHUB_ENV
-        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer/android/platform/android-sdk
+          key: ${{ runner.os }}-android-sdk
+          restore-keys: |
+            ${{ runner.os }}-android-sdk
 
-    - name: Aceitar licenças e instalar SDK Build Tools 34.0.0
-      run: |
-        yes | sdkmanager --licenses
-        sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "platforms;android-31" "build-tools;34.0.0" "ndk;23.1.7779620"
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            ffmpeg \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            libunwind-dev \
+            zlib1g-dev
+          sudo apt-get install -y \
+            libsqlite3-dev \
+            sqlite3 \
+            bzip2 \
+            libbz2-dev \
+            zlib1g-dev \
+            openssl \
+            libgdbm-dev \
+            libgdbm-compat-dev \
+            liblzma-dev \
+            libreadline-dev \
+            uuid-dev \
+            libgstreamer1.0 \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good
+          sudo apt-get install -y \
+            zip \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo6 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            automake
 
-    - name: Limpar cache do Buildozer (SDK e NDK)
-      run: |
-        rm -rf .buildozer/android/platform/android-sdk
-        rm -rf .buildozer/android/platform/android-ndk
+      # Set up Java 17 required by Gradle
+      - name: Setup Java 17 required by Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'  # or 'zulu', 'liberica', etc.
+          java-version: '17'
 
-    - name: Criar ambiente virtual e instalar Buildozer + Cython
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install buildozer cython
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' #set your python version
 
-    - name: Compilar APK com Buildozer
-      run: |
-        export ANDROID_SDK_ROOT=$HOME/android-sdk
-        export ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/23.1.7779620
-        source venv/bin/activate
-        buildozer android debug
+      # Install pip dependencies
+      - name: Install pip dependencies
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.33
+      
+      ## Set env variables for P4A Android App Bundle (Signed) [Required by Google Play]
+      ## https://gist.github.com/Guhan-SenSam/fa4ed215ef3419e7b3154de5cb71f641
+      # - name: Set environment variables
+      #   env:
+      #     P4A_RELEASE_KEYSTORE: ${{ secrets.P4A_RELEASE_KEYSTORE }}
+      #     P4A_RELEASE_KEYSTORE_PASSWD: ${{ secrets.P4A_RELEASE_KEYSTORE_PASSWD }}
+      #     P4A_RELEASE_KEYALIAS: ${{ secrets.P4A_RELEASE_KEYALIAS }}
+      #     P4A_RELEASE_KEYALIAS_PASSWD: ${{ secrets.P4A_RELEASE_KEYALIAS_PASSWD }}
 
-    - name: Upload APK como artefato
-      uses: actions/upload-artifact@v4
-      with:
-        name: kivy-apk
-        path: bin/*.apk
+      #   run: |
+      #     echo "P4A_RELEASE_KEYSTORE=$P4A_RELEASE_KEYSTORE" >> $GITHUB_ENV
+      #     echo "P4A_RELEASE_KEYSTORE_PASSWD=$P4A_RELEASE_KEYSTORE_PASSWD" >> $GITHUB_ENV
+      #     echo "P4A_RELEASE_KEYALIAS=$P4A_RELEASE_KEYALIAS" >> $GITHUB_ENV
+      #     echo "P4A_RELEASE_KEYALIAS_PASSWD=$P4A_RELEASE_KEYALIAS_PASSWD" >> $GITHUB_ENV
+      
+      # Build with Buildozer
+      - name: Build with Buildozer
+        id: buildozer
+        run: |
+          yes | buildozer -v android debug
+        # yes | buildozer -v android release
+        # run this for generating aab (Android App Bundle) [Required by google play]
+
+      # Upload artifacts
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: |
+            bin/*.apk
+            bin/*.aab
+          retention-days: 3
