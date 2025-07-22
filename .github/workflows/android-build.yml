@@ -60,6 +60,7 @@ jobs:
 
     - name: Compilar APK
       run: |
+        export ANDROID_SDK_ROOT=$HOME/android-sdk
         source venv/bin/activate
         buildozer android debug
 
