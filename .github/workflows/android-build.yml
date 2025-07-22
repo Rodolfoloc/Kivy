@@ -13,7 +13,12 @@ jobs:
       - name: Setup dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip openjdk-17-jdk unzip wget
+          sudo apt install -y python3-pip openjdk-17-jdk unzip wget git
+
+      - name: Install Buildozer dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user cython==0.29.35 buildozer
 
       - name: Download Android command line tools
         run: |
@@ -31,9 +36,6 @@ jobs:
         run: |
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.0.0"
-
-      - name: Install Buildozer
-        run: pip3 install --user buildozer
 
       - name: Build APK
         run: |
