@@ -35,26 +35,25 @@ jobs:
     - name: Configurar ambiente Android
       run: |
         echo "export ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "export PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$HOME/android-sdk/emulator:$PATH" >> $GITHUB_ENV
+        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-    - name: Instalar Build Tools
+    - name: Instalar Build Tools e aceitar licenças
       run: |
-        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=${HOME}/android-sdk \
+        yes | sdkmanager --licenses
+        sdkmanager --sdk_root=${HOME}/android-sdk \
           "platform-tools" "platforms;android-31" "build-tools;34.0.0"
 
     - name: Criar ambiente virtual e instalar buildozer
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install buildozer cython
-
-    - name: Instalar buildozer
       run: |
         python3 -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
         pip install buildozer cython
+
+    - name: Criar buildozer.spec se necessário
+      run: |
+        test -f buildozer.spec || buildozer init
 
     - name: Compilar APK
       run: |
