@@ -2,7 +2,7 @@ name: Build Kivy APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout código
+    - name: Checkout do código
       uses: actions/checkout@v3
 
     - name: Configurar Python
@@ -21,23 +21,26 @@ jobs:
     - name: Instalar dependências do sistema
       run: |
         sudo apt update
-        sudo apt install -y \
-          python3-pip python3-setuptools git zip unzip \
-          openjdk-17-jdk libffi-dev libssl-dev build-essential
+        sudo apt install -y openjdk-17-jdk python3-pip python3-setuptools zip unzip libffi-dev libssl-dev build-essential
 
-    - name: Criar ambiente virtual e instalar buildozer
+    - name: Criar ambiente virtual e instalar Buildozer
       run: |
         python3 -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
-        pip install buildozer cython
+        pip install cython buildozer
 
-    - name: Compilar APK
+    - name: Limpar SDK/NDK antigos (garante uso do NDK 25b)
+      run: |
+        rm -rf ~/.buildozer/android/platform/android-ndk-* || true
+        rm -rf ~/.buildozer/android/platform/android-sdk || true
+
+    - name: Compilar APK (modo debug)
       run: |
         source venv/bin/activate
         buildozer android debug
 
-    - name: Upload APK como artefato
+    - name: Upload do APK como artefato
       uses: actions/upload-artifact@v4
       with:
         name: kivy-apk
