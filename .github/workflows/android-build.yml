@@ -21,7 +21,12 @@ jobs:
     - name: Instalar dependências do sistema
       run: |
         sudo apt update
-        sudo apt install -y openjdk-17-jdk python3-pip python3-setuptools zip unzip libffi-dev libssl-dev build-essential
+        sudo apt install -y \
+          openjdk-17-jdk \
+          python3-pip python3-setuptools \
+          zip unzip libffi-dev libssl-dev \
+          build-essential \
+          autoconf automake libtool pkg-config
 
     - name: Criar ambiente virtual e instalar Buildozer
       run: |
@@ -30,7 +35,7 @@ jobs:
         pip install --upgrade pip
         pip install cython buildozer
 
-    - name: Limpar SDK/NDK antigos (garante uso do NDK 25b)
+    - name: Limpar SDK/NDK antigos (para forçar uso do NDK 25b)
       run: |
         rm -rf ~/.buildozer/android/platform/android-ndk-* || true
         rm -rf ~/.buildozer/android/platform/android-sdk || true
