@@ -58,9 +58,15 @@ jobs:
       run: |
         test -f buildozer.spec || buildozer init
 
+    - name: Limpar SDK/NDK cache do buildozer
+      run: |
+        rm -rf .buildozer/android/platform/android-sdk
+        rm -rf .buildozer/android/platform/android-ndk
+
     - name: Compilar APK
       run: |
         export ANDROID_SDK_ROOT=$HOME/android-sdk
+        export ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/23.1.7779620
         source venv/bin/activate
         buildozer android debug
 
