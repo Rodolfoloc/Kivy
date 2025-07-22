@@ -32,8 +32,10 @@ jobs:
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-      - name: Install Buildozer
-        run: pip3 install --user buildozer
+      - name: Install Buildozer and dependencies
+        run: |
+          pip3 install --user cython buildozer
+          pip3 install --user buildozer
 
       - name: Build APK
         run: ~/.local/bin/buildozer android debug
