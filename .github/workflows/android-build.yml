@@ -3,15 +3,13 @@ name: Build Kivy APK
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout do repositório
+      - name: 🧾 Checkout do código
         uses: actions/checkout@v4
 
       - name: 🛠️ Instalar dependências do sistema
@@ -41,6 +39,14 @@ jobs:
             python3-venv \
             ant
 
+      - name: 📦 Instalar AIDL e Build-Tools no SDK
+        run: |
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.2"
+
       - name: 🐍 Criar ambiente virtual Python
         run: |
           python3 -m venv venv
@@ -53,7 +59,7 @@ jobs:
           source venv/bin/activate
           buildozer android debug
 
-      - name: 📦 Fazer upload do APK
+      - name: 📦 Upload do APK
         uses: actions/upload-artifact@v4
         with:
           name: kivy-apk
