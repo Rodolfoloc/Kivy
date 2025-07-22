@@ -38,7 +38,7 @@ android.api = 33
 android.build_tools_version = 33.0.2
 
 # NDK recomendado
-android.ndk = 23b
+android.ndk = 25b
 
 # Aceitar licenças automaticamente (necessário para CI/CD)
 android.accept_sdk_license = true
